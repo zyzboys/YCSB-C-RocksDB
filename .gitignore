@@ -22,6 +22,9 @@
 *.a
 *.lib
 
+# clangd
+.cache
+
 # Executables
 *.exe
 *.out
