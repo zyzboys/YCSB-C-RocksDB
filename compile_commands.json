@@ -1,61 +1,6 @@
 [
     {
-        "command": "c++ -c -std=c++11 -g -Wall -o core_workload.o /home/colin/hub/YCSB-C-1/core/core_workload.cc",
-        "directory": "/home/colin/hub/YCSB-C-1/core",
-        "file": "/home/colin/hub/YCSB-C-1/core/core_workload.cc"
-    },
-    {
-        "command": "c++ -c -std=c++11 -g -Wall -fgnu-tm -I/home/colin/hub/YCSB-C-1 -o db_factory.o /home/colin/hub/YCSB-C-1/db/db_factory.cc",
-        "directory": "/home/colin/hub/YCSB-C-1/db",
-        "file": "/home/colin/hub/YCSB-C-1/db/db_factory.cc"
-    },
-    {
-        "command": "c++ -c -std=c++11 -g -Wall -fgnu-tm -I/home/colin/hub/YCSB-C-1 -o redis_db.o /home/colin/hub/YCSB-C-1/db/redis_db.cc",
-        "directory": "/home/colin/hub/YCSB-C-1/db",
-        "file": "/home/colin/hub/YCSB-C-1/db/redis_db.cc"
-    },
-    {
-        "command": "c++ -c -std=c++11 -g -Wall -fgnu-tm -I/home/colin/hub/YCSB-C-1 -o hashtable_db.o /home/colin/hub/YCSB-C-1/db/hashtable_db.cc",
-        "directory": "/home/colin/hub/YCSB-C-1/db",
-        "file": "/home/colin/hub/YCSB-C-1/db/hashtable_db.cc"
-    },
-    {
-        "command": "cc -c -std=c99 -pedantic -O3 -fPIC -Wall -W -Wstrict-prototypes -Wwrite-strings -g -ggdb /home/colin/hub/YCSB-C-1/redis/hiredis/net.c",
-        "directory": "/home/colin/hub/YCSB-C-1/redis/hiredis",
-        "file": "/home/colin/hub/YCSB-C-1/redis/hiredis/net.c"
-    },
-    {
-        "command": "cc -c -std=c99 -pedantic -O3 -fPIC -Wall -W -Wstrict-prototypes -Wwrite-strings -g -ggdb /home/colin/hub/YCSB-C-1/redis/hiredis/hiredis.c",
-        "directory": "/home/colin/hub/YCSB-C-1/redis/hiredis",
-        "file": "/home/colin/hub/YCSB-C-1/redis/hiredis/hiredis.c"
-    },
-    {
-        "command": "cc -c -std=c99 -pedantic -O3 -fPIC -Wall -W -Wstrict-prototypes -Wwrite-strings -g -ggdb /home/colin/hub/YCSB-C-1/redis/hiredis/sds.c",
-        "directory": "/home/colin/hub/YCSB-C-1/redis/hiredis",
-        "file": "/home/colin/hub/YCSB-C-1/redis/hiredis/sds.c"
-    },
-    {
-        "command": "cc -c -std=c99 -pedantic -O3 -fPIC -Wall -W -Wstrict-prototypes -Wwrite-strings -g -ggdb /home/colin/hub/YCSB-C-1/redis/hiredis/async.c",
-        "directory": "/home/colin/hub/YCSB-C-1/redis/hiredis",
-        "file": "/home/colin/hub/YCSB-C-1/redis/hiredis/async.c"
-    },
-    {
-        "command": "cc -c -std=c99 -pedantic -O3 -fPIC -Wall -W -Wstrict-prototypes -Wwrite-strings -g -ggdb /home/colin/hub/YCSB-C-1/redis/hiredis/read.c",
-        "directory": "/home/colin/hub/YCSB-C-1/redis/hiredis",
-        "file": "/home/colin/hub/YCSB-C-1/redis/hiredis/read.c"
-    },
-    {
-        "command": "cc -c -std=c99 -pedantic -O3 -fPIC -Wall -W -Wstrict-prototypes -Wwrite-strings -g -ggdb /home/colin/hub/YCSB-C-1/redis/hiredis/test.c",
-        "directory": "/home/colin/hub/YCSB-C-1/redis/hiredis",
-        "file": "/home/colin/hub/YCSB-C-1/redis/hiredis/test.c"
-    },
-    {
-        "command": "c++ -c -Wall -std=c++11 -I/home/colin/hub/YCSB-C-1 ../db/redis_db.o -o sample /home/colin/hub/YCSB-C-1/redis/sample.cc",
-        "directory": "/home/colin/hub/YCSB-C-1/redis",
-        "file": "/home/colin/hub/YCSB-C-1/redis/sample.cc"
-    },
-    {
-        "command": "c++ -c -std=c++11 -g -Wall -pthread -I/home/colin/hub/YCSB-C-1 core/core_workload.o db/db_factory.o db/redis_db.o db/hashtable_db.o -o ycsbc /home/colin/hub/YCSB-C-1/ycsbc.cc",
+        "command": "c++ -c -std=c++11 -g -Wall -pthread -I/home/colin/hub/YCSB-C-1 core/core_workload.o db/db_factory.o db/hashtable_db.o db/rocksdb_db.o librocksdb.a -o ycsbc /home/colin/hub/YCSB-C-1/ycsbc.cc",
         "directory": "/home/colin/hub/YCSB-C-1",
         "file": "/home/colin/hub/YCSB-C-1/ycsbc.cc"
     }
