@@ -23,12 +23,19 @@ target_sources(ycsbc
 target_include_directories(ycsbc
   PRIVATE
   ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/db_impl/rocksdb/include
 )
+
+target_link_directories(ycsbc
+  PRIVATE
+  ${PROJECT_SOURCE_DIR}/db_impl/rocksdb/build
+)
+
 
 target_link_libraries(ycsbc
   pthread
   tbb
-  ${PROJECT_SOURCE_DIR}/librocksdb.a
+  rocksdb
   zstd
   lz4
   bz2
