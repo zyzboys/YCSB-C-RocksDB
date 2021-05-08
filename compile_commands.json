@@ -1,7 +1,27 @@
 [
-    {
-        "command": "c++ -c -std=c++11 -g -Wall -pthread -I/home/colin/hub/YCSB-C-1 core/core_workload.o db/db_factory.o db/hashtable_db.o db/rocksdb_db.o librocksdb.a -o ycsbc /home/colin/hub/YCSB-C-1/ycsbc.cc",
-        "directory": "/home/colin/hub/YCSB-C-1",
-        "file": "/home/colin/hub/YCSB-C-1/ycsbc.cc"
-    }
+{
+  "directory": "/home/colin/hub/YCSB-C-RocksDB/build",
+  "command": "/usr/bin/c++  -I/home/colin/hub/YCSB-C-RocksDB -I/home/colin/hub/YCSB-C-RocksDB/db_impl/rocksdb/include -g -Wall -pthread -std=gnu++11 -o CMakeFiles/ycsbc.dir/ycsbc.cc.o -c /home/colin/hub/YCSB-C-RocksDB/ycsbc.cc",
+  "file": "/home/colin/hub/YCSB-C-RocksDB/ycsbc.cc"
+},
+{
+  "directory": "/home/colin/hub/YCSB-C-RocksDB/build",
+  "command": "/usr/bin/c++  -I/home/colin/hub/YCSB-C-RocksDB -I/home/colin/hub/YCSB-C-RocksDB/db_impl/rocksdb/include -g -Wall -pthread -std=gnu++11 -o CMakeFiles/ycsbc.dir/core/core_workload.cc.o -c /home/colin/hub/YCSB-C-RocksDB/core/core_workload.cc",
+  "file": "/home/colin/hub/YCSB-C-RocksDB/core/core_workload.cc"
+},
+{
+  "directory": "/home/colin/hub/YCSB-C-RocksDB/build",
+  "command": "/usr/bin/c++  -I/home/colin/hub/YCSB-C-RocksDB -I/home/colin/hub/YCSB-C-RocksDB/db_impl/rocksdb/include -g -Wall -pthread -std=gnu++11 -o CMakeFiles/ycsbc.dir/db/db_factory.cc.o -c /home/colin/hub/YCSB-C-RocksDB/db/db_factory.cc",
+  "file": "/home/colin/hub/YCSB-C-RocksDB/db/db_factory.cc"
+},
+{
+  "directory": "/home/colin/hub/YCSB-C-RocksDB/build",
+  "command": "/usr/bin/c++  -I/home/colin/hub/YCSB-C-RocksDB -I/home/colin/hub/YCSB-C-RocksDB/db_impl/rocksdb/include -g -Wall -pthread -std=gnu++11 -o CMakeFiles/ycsbc.dir/db/hashtable_db.cc.o -c /home/colin/hub/YCSB-C-RocksDB/db/hashtable_db.cc",
+  "file": "/home/colin/hub/YCSB-C-RocksDB/db/hashtable_db.cc"
+},
+{
+  "directory": "/home/colin/hub/YCSB-C-RocksDB/build",
+  "command": "/usr/bin/c++  -I/home/colin/hub/YCSB-C-RocksDB -I/home/colin/hub/YCSB-C-RocksDB/db_impl/rocksdb/include -g -Wall -pthread -std=gnu++11 -o CMakeFiles/ycsbc.dir/db/rocksdb_db.cc.o -c /home/colin/hub/YCSB-C-RocksDB/db/rocksdb_db.cc",
+  "file": "/home/colin/hub/YCSB-C-RocksDB/db/rocksdb_db.cc"
+}
 ]

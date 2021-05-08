@@ -7,6 +7,9 @@ project(ycsbc LANGUAGES CXX)
 #specify c++ compiler version
 set(CMAKE_CXX_STANDARD 11)
 
+#compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
+
 add_executable(ycsbc "")
 
 target_compile_options(ycsbc PRIVATE -g -Wall -pthread)
@@ -42,4 +45,9 @@ target_link_libraries(ycsbc
   z
   snappy
   dl
+  )
+
+  add_custom_command(
+    TARGET ycsbc
+    COMMAND cp ${PROJECT_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}
   )
