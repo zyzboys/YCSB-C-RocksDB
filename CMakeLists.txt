@@ -38,7 +38,7 @@ target_link_directories(ycsbc
 target_link_libraries(ycsbc
   pthread
   tbb
-  rocksdb
+  librocksdb.a
   zstd
   lz4
   bz2
