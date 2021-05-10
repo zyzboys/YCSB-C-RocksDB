@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-std=c++11 -g -Wall -pthread -I./
-LDFLAGS= -lpthread -ltbb librocksdb.a -lzstd -llz4 -lbz2 -lz -ldl -lsnappy
+CFLAGS=-std=c++11 -g -Wall -pthread -I./ -I./db_impl/rocksdb/include
+LDFLAGS= -lpthread -ltbb ./db_impl/rocksdb/build/librocksdb.a -lzstd -llz4 -lbz2 -lz -ldl -lsnappy
 SUBDIRS=core db
 SUBSRCS=$(wildcard core/*.cc) $(wildcard db/*.cc)
 OBJECTS=$(SUBSRCS:.cc=.o)
