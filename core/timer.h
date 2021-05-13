@@ -12,29 +12,28 @@
 #include <chrono>
 
 namespace utils {
+typedef std::chrono::duration<double, std::nano> t_nanoseconds;
+typedef std::chrono::duration<double, std::micro> t_microseconds;
+typedef std::chrono::duration<double, std::milli> t_milliseconds;
+typedef std::chrono::duration<double> t_seconds;
 
-template <typename T>
-class Timer {
- public:
-  void Start() {
-    time_ = Clock::now();
-  }
+template <typename T> class Timer {
+public:
+  void Start() { time_ = Clock::now(); }
 
-  T End() {
-    Duration span;
+  double End() {
+    T span;
     Clock::time_point t = Clock::now();
-    span = std::chrono::duration_cast<Duration>(t - time_);
+    span = std::chrono::duration_cast<T>(t - time_);
     return span.count();
   }
 
- private:
+private:
   typedef std::chrono::high_resolution_clock Clock;
-  typedef std::chrono::duration<T> Duration;
 
   Clock::time_point time_;
 };
 
-} // utils
+} // namespace utils
 
 #endif // YCSB_C_TIMER_H_
-

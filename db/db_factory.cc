@@ -19,17 +19,17 @@ using namespace std;
 using ycsbc::DB;
 using ycsbc::DBFactory;
 
-DB *DBFactory::CreateDB(utils::Properties &props) {
+shared_ptr<DB> DBFactory::CreateDB(utils::Properties &props) {
   if (props["dbname"] == "basic") {
-    return new BasicDB;
+    return make_shared<BasicDB>();
   } else if (props["dbname"] == "lock_stl") {
-    return new LockStlDB;
+    return make_shared<LockStlDB>();
   } else if (props["dbname"] == "tbb_rand") {
-    return new TbbRandDB;
+    return make_shared<TbbRandDB>();
   } else if (props["dbname"] == "tbb_scan") {
-    return new TbbScanDB;
+    return make_shared<TbbScanDB>();
   } else if (props["dbname"] == "rocksdb") {
-    return new RocksDB(props["dbPath"].c_str());
+    return make_shared<RocksDB>(props["dbPath"].c_str());
   } else
     return NULL;
 }

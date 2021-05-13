@@ -21,6 +21,7 @@ target_sources(ycsbc
     "db/db_factory.cc"
     "db/hashtable_db.cc"
     "db/rocksdb_db.cc"
+    "utils/histogram.cc"
 )
 
 target_include_directories(ycsbc

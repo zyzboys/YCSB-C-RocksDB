@@ -11,15 +11,15 @@
 
 #include "core/db.h"
 #include "core/properties.h"
+#include <memory>
 
 namespace ycsbc {
 
 class DBFactory {
- public:
-  static DB* CreateDB(utils::Properties &props);
+public:
+  static std::shared_ptr<DB> CreateDB(utils::Properties &props);
 };
 
-} // ycsbc
+} // namespace ycsbc
 
 #endif // YCSB_C_DB_FACTORY_H_
-
