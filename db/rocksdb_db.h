@@ -14,14 +14,11 @@
 #include <iostream>
 #include <string>
 
-using std::cout;
-using std::endl;
-
 namespace ycsbc {
 
 class RocksDB : public DB {
 public:
-  RocksDB(const char *dbPath);
+  RocksDB(const char *dbPath,const std::string dbConfig);
 
   int Read(const std::string &table, const std::string &key,
            const std::vector<std::string> *fields, std::vector<KVPair> &result);

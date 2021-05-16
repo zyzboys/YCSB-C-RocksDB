@@ -73,6 +73,7 @@ int main(const int argc, const char *argv[]) {
     timer.Start();
     for (int i = 0; i < num_threads; ++i) {
       shared_ptr<ycsbc::Histogram> his = make_shared<ycsbc::Histogram>();
+      his->Clear();
       histograms.emplace_back(his);
       actual_ops.emplace_back(async(launch::async, DelegateClient, db, &wl,
                                     total_ops / num_threads, true, his));
@@ -92,6 +93,10 @@ int main(const int argc, const char *argv[]) {
     cerr << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
     cerr << total_ops / duration << " OPS" << endl;
     cerr << histograms[0]->ToString() << endl;
+    if(props.GetProperty("dbname")=="rocksdb"){
+      cerr<<"============================statistics==========================="<<endl;
+      db->printStats();
+    }
   }
 
   // Peforms transactions
@@ -121,6 +126,10 @@ int main(const int argc, const char *argv[]) {
     cerr << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
     cerr << total_ops / duration << " OPS" << endl;
     cerr << histograms[0]->ToString() << endl;
+    if(props.GetProperty("dbname")=="rocksdb"){
+      cerr<<"============================statistics==========================="<<endl;
+      db->printStats();
+    }
   }
 }
 
@@ -162,6 +171,14 @@ string ParseCommandLine(int argc, const char *argv[],
         exit(0);
       }
       props.SetProperty("dbPath", argv[argindex]);
+      argindex++;
+    }else if (strcmp(argv[argindex], "-dbConfig") == 0) {
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("dbConfig", argv[argindex]);
       argindex++;
     } else if (strcmp(argv[argindex], "-host") == 0) {
       argindex++;
@@ -216,6 +233,7 @@ string ParseCommandLine(int argc, const char *argv[],
 
   string pattern = props.GetProperty("pattern");
   if (pattern.empty()) {
+    cout<<"Unknown pattern"<<endl;
     UsageMessage(argv[0]);
     exit(0);
   }
@@ -226,7 +244,9 @@ string ParseCommandLine(int argc, const char *argv[],
 void UsageMessage(const char *command) {
   cout << "Usage: " << command << " [options]" << endl;
   cout << "Options:" << endl;
+  cout << "  pattern: load/run/both"<< endl;
   cout << "  load: load the database from file" << endl;
+  
   cout << "  run: peforms transactions in the previous database" << endl;
   cout << "  both: load and run" << endl;
   cout << "  'load','run','both' must choose one" << endl;

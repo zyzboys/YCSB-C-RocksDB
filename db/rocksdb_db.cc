@@ -9,13 +9,20 @@
 #include "rocksdb/flush_block_policy.h"
 #include "utils/rocksdb_config.h"
 #include <iostream>
+#include <memory>
+#include <string>
 
 using namespace std;
 
 namespace ycsbc {
-RocksDB::RocksDB(const char *dbPath) : noResult(0) {
+RocksDB::RocksDB(const char *dbPath,const string dbConfig) : noResult(0) {
   // get rocksdb config
-  ConfigRocksDB config = ConfigRocksDB();
+  ConfigRocksDB config;
+  if(dbConfig.empty()){
+    config.init("./RocksDBConfig/rocksdb_config.ini");
+  }else{
+    config.init(dbConfig);
+  }
   int bloomBits = config.getBloomBits();
   size_t blockCache = config.getBlockCache();
   bool seekCompaction = config.getSeekCompaction();
@@ -27,10 +34,11 @@ RocksDB::RocksDB(const char *dbPath) : noResult(0) {
   rocksdb::BlockBasedTableOptions bbto;
   options.create_if_missing = true;
   options.write_buffer_size = memtable;
-  options.target_file_size_base = 16 << 20;
+  options.target_file_size_base = 64 << 20; //64MB
   // options.compaction_pri = rocksdb::kMinOverlappingRatio;
-  if (config.getTiered())
+  if (config.getTiered()){
     options.compaction_style = rocksdb::kCompactionStyleUniversal;
+  }
   options.max_background_jobs = config.getNumThreads();
   options.disable_auto_compactions = config.getNoCompaction();
   // options.level_compaction_dynamic_level_bytes = true;

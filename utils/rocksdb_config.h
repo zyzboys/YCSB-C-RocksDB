@@ -44,9 +44,10 @@ private:
   uint64_t blockWriteSize_;
 
 public:
-  ConfigRocksDB() {
+  ConfigRocksDB(){};
+  void init(const string dbConfig) {
     boost::property_tree::ini_parser::read_ini(
-        "./RocksDBConfig/rocksdb_config.ini", pt_);
+        dbConfig, pt_);
     bloomBits_ = pt_.get<int>("config.bloomBits");
     seekCompaction_ = pt_.get<bool>("config.seekCompaction");
     compression_ = pt_.get<bool>("config.compression");
