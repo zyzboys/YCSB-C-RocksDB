@@ -12,11 +12,13 @@
 #include "core/utils.h"
 #include "db/db_factory.h"
 #include "utils/histogram.h"
+#include <chrono>
 #include <cstring>
 #include <future>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 using namespace std;
@@ -25,6 +27,14 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 string ParseCommandLine(int argc, const char *argv[], utils::Properties &props);
 
+int record(shared_ptr<ycsbc::DB> db, atomic<bool> *isFinish, int duration) {
+  while (!(*isFinish)) {
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep 1s
+    std::this_thread::sleep_for(std::chrono::seconds(duration)); // sleep 10s
+    db->printStats();
+  }
+  return 0;
+}
 int DelegateClient(shared_ptr<ycsbc::DB> db, ycsbc::CoreWorkload *wl,
                    const int num_ops, bool is_loading,
                    shared_ptr<ycsbc::Histogram> his) {
@@ -60,12 +70,20 @@ int main(const int argc, const char *argv[]) {
   wl.Init(props);
 
   const int num_threads = stoi(props.GetProperty("threadcount", "1"));
+  atomic<bool> *isFinish = new atomic<bool>(false);
 
   vector<future<int>> actual_ops;
   vector<shared_ptr<ycsbc::Histogram>> histograms;
   utils::Timer<utils::t_seconds> timer;
 
   string pattern = props.GetProperty("pattern");
+
+  int duration = stoi(props.GetProperty("duration", "0"));
+  if (duration) {
+    auto r = async(launch::async, record, db, isFinish, duration);
+  }
+  // thread recordT(record,isFinish);
+  // recordT.detach();
 
   // Loads data
   if (pattern == "load" || pattern == "both") {
@@ -85,6 +103,9 @@ int main(const int argc, const char *argv[]) {
       assert(n.valid());
       sum += n.get();
     }
+    *isFinish = true; // finish tasks
+    // r.get();
+    delete isFinish;
     auto duration = timer.End();
     for (int i = 1; i < num_threads; i++) {
       histograms[0]->Merge(*histograms[i]);
@@ -93,8 +114,10 @@ int main(const int argc, const char *argv[]) {
     cerr << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
     cerr << total_ops / duration << " OPS" << endl;
     cerr << histograms[0]->ToString() << endl;
-    if(props.GetProperty("dbname")=="rocksdb"){
-      cerr<<"============================statistics==========================="<<endl;
+    if (props.GetProperty("dbname") == "rocksdb") {
+      cerr
+          << "============================statistics==========================="
+          << endl;
       db->printStats();
     }
   }
@@ -107,6 +130,7 @@ int main(const int argc, const char *argv[]) {
     timer.Start();
     for (int i = 0; i < num_threads; ++i) {
       shared_ptr<ycsbc::Histogram> his = make_shared<ycsbc::Histogram>();
+      his->Clear();
       histograms.emplace_back(his);
       actual_ops.emplace_back(async(launch::async, DelegateClient, db, &wl,
                                     total_ops / num_threads, false, his));
@@ -118,6 +142,8 @@ int main(const int argc, const char *argv[]) {
       assert(n.valid());
       sum += n.get();
     }
+    *isFinish = true; // finish tasks
+    delete isFinish;
     auto duration = timer.End();
     for (int i = 1; i < num_threads; i++) {
       histograms[0]->Merge(*histograms[i]);
@@ -126,8 +152,10 @@ int main(const int argc, const char *argv[]) {
     cerr << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
     cerr << total_ops / duration << " OPS" << endl;
     cerr << histograms[0]->ToString() << endl;
-    if(props.GetProperty("dbname")=="rocksdb"){
-      cerr<<"============================statistics==========================="<<endl;
+    if (props.GetProperty("dbname") == "rocksdb") {
+      cerr
+          << "============================statistics==========================="
+          << endl;
       db->printStats();
     }
   }
@@ -172,13 +200,21 @@ string ParseCommandLine(int argc, const char *argv[],
       }
       props.SetProperty("dbPath", argv[argindex]);
       argindex++;
-    }else if (strcmp(argv[argindex], "-dbConfig") == 0) {
+    } else if (strcmp(argv[argindex], "-dbConfig") == 0) {
       argindex++;
       if (argindex >= argc) {
         UsageMessage(argv[0]);
         exit(0);
       }
       props.SetProperty("dbConfig", argv[argindex]);
+      argindex++;
+    } else if (strcmp(argv[argindex], "-d") == 0) {
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("duration", argv[argindex]);
       argindex++;
     } else if (strcmp(argv[argindex], "-host") == 0) {
       argindex++;
@@ -233,7 +269,7 @@ string ParseCommandLine(int argc, const char *argv[],
 
   string pattern = props.GetProperty("pattern");
   if (pattern.empty()) {
-    cout<<"Unknown pattern"<<endl;
+    cout << "Unknown pattern" << endl;
     UsageMessage(argv[0]);
     exit(0);
   }
@@ -244,13 +280,16 @@ string ParseCommandLine(int argc, const char *argv[],
 void UsageMessage(const char *command) {
   cout << "Usage: " << command << " [options]" << endl;
   cout << "Options:" << endl;
-  cout << "  pattern: load/run/both"<< endl;
+  cout << "  pattern: load/run/both" << endl;
   cout << "  load: load the database from file" << endl;
-  
+
   cout << "  run: peforms transactions in the previous database" << endl;
   cout << "  both: load and run" << endl;
   cout << "  'load','run','both' must choose one" << endl;
   cout << "  -threads n: execute using n threads (default: 1)" << endl;
+  cout << "  -d n: print DB stats in n seconds (default: 0,mean do not print "
+          "stats info)"
+       << endl;
   cout << "  -db dbname: specify the name of the DB to use (default: basic)"
        << endl;
   cout << "  -P propertyfile: load properties from the given file. Multiple "

@@ -8,6 +8,7 @@
 #include "rocksdb/filter_policy.h"
 #include "rocksdb/flush_block_policy.h"
 #include "utils/rocksdb_config.h"
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -15,12 +16,12 @@
 using namespace std;
 
 namespace ycsbc {
-RocksDB::RocksDB(const char *dbPath,const string dbConfig) : noResult(0) {
+RocksDB::RocksDB(const char *dbPath, const string dbConfig) : noResult(0) {
   // get rocksdb config
   ConfigRocksDB config;
-  if(dbConfig.empty()){
+  if (dbConfig.empty()) {
     config.init("./RocksDBConfig/rocksdb_config.ini");
-  }else{
+  } else {
     config.init(dbConfig);
   }
   int bloomBits = config.getBloomBits();
@@ -32,23 +33,26 @@ RocksDB::RocksDB(const char *dbPath,const string dbConfig) : noResult(0) {
   // set optionssc
   rocksdb::Options options;
   rocksdb::BlockBasedTableOptions bbto;
+  options.db_paths = {
+      {"/mnt/sdb/testRocksdb/test1", (uint64_t)10 * 1024 * 1024 * 1024},
+      {"/mnt/sdb/testRocksdb/test2", (uint64_t)10 * 1024 * 1024 * 1024}};
   options.create_if_missing = true;
   options.write_buffer_size = memtable;
-  options.target_file_size_base = 64 << 20; //64MB
+  options.target_file_size_base = 64 << 20; // 64MB
   // options.compaction_pri = rocksdb::kMinOverlappingRatio;
-  if (config.getTiered()){
+  if (config.getTiered()) {
     options.compaction_style = rocksdb::kCompactionStyleUniversal;
   }
   options.max_background_jobs = config.getNumThreads();
   options.disable_auto_compactions = config.getNoCompaction();
   // options.level_compaction_dynamic_level_bytes = true;
   // options.target_file_size_base = 8<<20;
-  cerr << "write buffer size" << options.write_buffer_size << endl;
-  cerr << "write buffer number" << options.max_write_buffer_number << endl;
-  cerr << "num compaction trigger" << options.level0_file_num_compaction_trigger
-       << endl;
-  cerr << "targe file size base" << options.target_file_size_base << endl;
-  cerr << "level size base" << options.max_bytes_for_level_base << endl;
+  cerr << "write buffer size: " << options.write_buffer_size << endl;
+  cerr << "write buffer number: " << options.max_write_buffer_number << endl;
+  cerr << "num compaction trigger: "
+       << options.level0_file_num_compaction_trigger << endl;
+  cerr << "targe file size base: " << options.target_file_size_base << endl;
+  cerr << "level size base: " << options.max_bytes_for_level_base << endl;
   if (!compression)
     options.compression = rocksdb::kNoCompression;
   if (bloomBits > 0) {
