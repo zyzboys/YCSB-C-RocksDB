@@ -91,6 +91,10 @@ class DB {
   virtual int Delete(const std::string &table, const std::string &key) = 0;
 
   virtual void printStats() {};
+
+  virtual  void EnablePerf(){};
+
+  virtual  void DisablePerf(){};
   
   virtual ~DB() { }
 };

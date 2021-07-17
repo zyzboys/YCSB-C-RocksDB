@@ -42,12 +42,12 @@ private:
   bool sep_before_flush_;
   double GCRatio_;
   uint64_t blockWriteSize_;
+  bool disableWAL_;
 
 public:
   ConfigRocksDB(){};
   void init(const string dbConfig) {
-    boost::property_tree::ini_parser::read_ini(
-        dbConfig, pt_);
+    boost::property_tree::ini_parser::read_ini(dbConfig, pt_);
     bloomBits_ = pt_.get<int>("config.bloomBits");
     seekCompaction_ = pt_.get<bool>("config.seekCompaction");
     compression_ = pt_.get<bool>("config.compression");
@@ -73,6 +73,7 @@ public:
     maxSortedRuns_ = pt_.get<int>("config.maxSortedRuns");
     GCRatio_ = pt_.get<double>("config.gcRatio");
     blockWriteSize_ = pt_.get<uint64_t>("config.blockWriteSize");
+    disableWAL_ = pt_.get<bool>("config.disableWAL");
   }
 
   int getBloomBits() { return bloomBits_; }
@@ -124,6 +125,8 @@ public:
   bool getRangeMerge() { return rangeMerge_; }
 
   bool getSepBeforeFlush() { return sep_before_flush_; }
+
+  bool getDisableWAL() { return disableWAL_; }
 };
 } // namespace ycsbc
 

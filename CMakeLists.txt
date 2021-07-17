@@ -37,9 +37,9 @@ target_link_directories(ycsbc
 
 
 target_link_libraries(ycsbc
+  librocksdb.a
   pthread
   tbb
-  librocksdb.a
   zstd
   lz4
   bz2

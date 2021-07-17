@@ -24,6 +24,7 @@ RocksDB::RocksDB(const char *dbPath, const string dbConfig) : noResult(0) {
   } else {
     config.init(dbConfig);
   }
+  disableWAL_ = config.getDisableWAL();
   int bloomBits = config.getBloomBits();
   size_t blockCache = config.getBlockCache();
   bool seekCompaction = config.getSeekCompaction();
@@ -34,8 +35,11 @@ RocksDB::RocksDB(const char *dbPath, const string dbConfig) : noResult(0) {
   rocksdb::Options options;
   rocksdb::BlockBasedTableOptions bbto;
   options.db_paths = {
-      {"/mnt/sdb/testRocksdb/test1", (uint64_t)10 * 1024 * 1024 * 1024},
-      {"/mnt/sdb/testRocksdb/test2", (uint64_t)10 * 1024 * 1024 * 1024}};
+      {"/mnt/sdb/testRocksdb/vol1", (uint64_t)1 * 1024 * 1024 * 1024},
+      {"/mnt/sdb/testRocksdb/vol2", (uint64_t)3 * 1024 * 1024 * 1024},
+      {"/mnt/sdb/testRocksdb/vol3", (uint64_t)300 * 1024 * 1024 * 1024}};
+  options.statistics = rocksdb::CreateDBStatistics();
+  statistics = options.statistics;
   options.create_if_missing = true;
   options.write_buffer_size = memtable;
   options.target_file_size_base = 64 << 20; // 64MB
@@ -66,6 +70,13 @@ RocksDB::RocksDB(const char *dbPath, const string dbConfig) : noResult(0) {
     cerr << "Can't open rocksdb " << dbPath << endl;
     exit(0);
   }
+
+  //开启profiling
+  // cout<<"开启profiling"<<endl;
+  // rocksdb::SetPerfLevel(rocksdb::PerfLevel::kEnableTimeExceptForMutex);
+  // rocksdb::get_perf_context()->Reset();
+  // rocksdb::get_iostats_context()->Reset();
+
   cout << "\nbloom bits:" << bloomBits << "bits\ndirectIO:" << (bool)directIO
        << "\nseekCompaction:" << (bool)seekCompaction << endl;
 }
@@ -117,8 +128,10 @@ int RocksDB::Scan(const std::string &table, const std::string &key, int len,
 int RocksDB::Insert(const std::string &table, const std::string &key,
                     std::vector<KVPair> &values) {
   rocksdb::Status s;
+  auto wo = rocksdb::WriteOptions();
+  wo.disableWAL = disableWAL_;
   for (KVPair &p : values) {
-    s = db_->Put(rocksdb::WriteOptions(), key, p.second);
+    s = db_->Put(wo, key, p.second);
     if (!s.ok()) {
       cerr << "insert error" << s.ToString() << "\n" << endl;
       exit(0);
@@ -141,7 +154,28 @@ void RocksDB::printStats() {
   string stats;
   db_->GetProperty("rocksdb.stats", &stats);
   cout << stats << endl;
+  cout << "=========================== options.statistics "
+          "=============================="
+       << endl;
+  cout << statistics->ToString() << endl;
+
+  // //输出perf & io
+  // std::cout << "===================== perf/IO "
+  //              "statistics================================"
+  //           << std::endl;
+  // std::cout << rocksdb::get_perf_context()->ToString() << std::endl;
+  // std::cout << rocksdb::get_iostats_context()->ToString() << std::endl;
+  // //关闭profiling
+  // rocksdb::SetPerfLevel(rocksdb::PerfLevel::kDisable);
 }
+
+void EnablePerf() {
+  rocksdb::SetPerfLevel(rocksdb::PerfLevel::kEnableTimeExceptForMutex);
+  rocksdb::get_perf_context()->Reset();
+  rocksdb::get_iostats_context()->Reset();
+}
+
+void DisablePerf() { rocksdb::SetPerfLevel(rocksdb::PerfLevel::kDisable); }
 
 RocksDB::~RocksDB() { delete db_; }
 } // namespace ycsbc

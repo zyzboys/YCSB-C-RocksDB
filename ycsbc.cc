@@ -11,6 +11,8 @@
 #include "core/timer.h"
 #include "core/utils.h"
 #include "db/db_factory.h"
+#include "rocksdb/iostats_context.h"
+#include "rocksdb/perf_context.h"
 #include "utils/histogram.h"
 #include <chrono>
 #include <cstring>
@@ -27,6 +29,17 @@ void UsageMessage(const char *command);
 bool StrStartWith(const char *str, const char *pre);
 string ParseCommandLine(int argc, const char *argv[], utils::Properties &props);
 
+void mergePerf(shared_ptr<rocksdb::PerfContext> a,
+               shared_ptr<rocksdb::PerfContext> b) {
+  a->write_memtable_time += b->write_memtable_time;
+  a->write_wal_time += b->write_wal_time;
+  a->write_pre_and_post_process_time += b->write_pre_and_post_process_time;
+  a->write_scheduling_flushes_compactions_time +=
+      b->write_scheduling_flushes_compactions_time;
+  a->write_delay_time += b->write_delay_time;
+  a->write_thread_wait_nanos += b->write_thread_wait_nanos;
+}
+
 int record(shared_ptr<ycsbc::DB> db, atomic<bool> *isFinish, int duration) {
   while (!(*isFinish)) {
     // std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep 1s
@@ -37,8 +50,15 @@ int record(shared_ptr<ycsbc::DB> db, atomic<bool> *isFinish, int duration) {
 }
 int DelegateClient(shared_ptr<ycsbc::DB> db, ycsbc::CoreWorkload *wl,
                    const int num_ops, bool is_loading,
-                   shared_ptr<ycsbc::Histogram> his) {
+                   shared_ptr<ycsbc::Histogram> his,
+                   shared_ptr<rocksdb::PerfContext> perf_Context,
+                   shared_ptr<rocksdb::IOStatsContext> iostats_Context) {
   db->Init();
+  // db->EnablePerf();
+  rocksdb::SetPerfLevel(rocksdb::PerfLevel::kEnableTimeExceptForMutex);
+  rocksdb::get_perf_context()->Reset();
+  rocksdb::get_iostats_context()->Reset();
+
   ycsbc::Client client(*db, *wl);
   utils::Timer<utils::t_microseconds> timer;
   int oks = 0;
@@ -52,6 +72,9 @@ int DelegateClient(shared_ptr<ycsbc::DB> db, ycsbc::CoreWorkload *wl,
     double duration = timer.End();
     his->AddFast(duration);
   }
+  db->DisablePerf();
+  *perf_Context = *rocksdb::get_perf_context();
+  *iostats_Context = *rocksdb::get_iostats_context();
   db->Close();
   return oks;
 }
@@ -74,6 +97,8 @@ int main(const int argc, const char *argv[]) {
 
   vector<future<int>> actual_ops;
   vector<shared_ptr<ycsbc::Histogram>> histograms;
+  vector<shared_ptr<rocksdb::PerfContext>> perfs;
+  vector<shared_ptr<rocksdb::IOStatsContext>> ioStatss;
   utils::Timer<utils::t_seconds> timer;
 
   string pattern = props.GetProperty("pattern");
@@ -91,10 +116,17 @@ int main(const int argc, const char *argv[]) {
     timer.Start();
     for (int i = 0; i < num_threads; ++i) {
       shared_ptr<ycsbc::Histogram> his = make_shared<ycsbc::Histogram>();
+      shared_ptr<rocksdb::PerfContext> perf_Context =
+          make_shared<rocksdb::PerfContext>();
+      shared_ptr<rocksdb::IOStatsContext> iostats_Context =
+          make_shared<rocksdb::IOStatsContext>();
       his->Clear();
       histograms.emplace_back(his);
+      perfs.emplace_back(perf_Context);
+      ioStatss.emplace_back(iostats_Context);
       actual_ops.emplace_back(async(launch::async, DelegateClient, db, &wl,
-                                    total_ops / num_threads, true, his));
+                                    total_ops / num_threads, true, his,
+                                    perf_Context, iostats_Context));
     }
     assert((int)actual_ops.size() == num_threads);
 
@@ -110,6 +142,11 @@ int main(const int argc, const char *argv[]) {
     for (int i = 1; i < num_threads; i++) {
       histograms[0]->Merge(*histograms[i]);
     }
+    shared_ptr<rocksdb::PerfContext> perf_Context =
+        make_shared<rocksdb::PerfContext>();
+    for (int i = 0; i < num_threads; i++) {
+      mergePerf(perf_Context, perfs[i]);
+    }
     cerr << "# Loading records:\t" << sum << endl;
     cerr << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
     cerr << total_ops / duration << " OPS" << endl;
@@ -119,6 +156,10 @@ int main(const int argc, const char *argv[]) {
           << "============================statistics==========================="
           << endl;
       db->printStats();
+      cerr << "============================ perf/io "
+              "statistics==========================="
+           << endl;
+      cerr << perf_Context->ToString() << endl;
     }
   }
 
@@ -126,14 +167,22 @@ int main(const int argc, const char *argv[]) {
   if (pattern == "run" || pattern == "both") {
     actual_ops.clear();
     histograms.clear();
+    perfs.clear();
+    ioStatss.clear();
     int total_ops = stoi(props[ycsbc::CoreWorkload::OPERATION_COUNT_PROPERTY]);
     timer.Start();
     for (int i = 0; i < num_threads; ++i) {
       shared_ptr<ycsbc::Histogram> his = make_shared<ycsbc::Histogram>();
+      shared_ptr<rocksdb::PerfContext> perf_Context =
+          make_shared<rocksdb::PerfContext>();
+      shared_ptr<rocksdb::IOStatsContext> iostats_Context =
+          make_shared<rocksdb::IOStatsContext>();
       his->Clear();
+      perfs.emplace_back(perf_Context);
       histograms.emplace_back(his);
       actual_ops.emplace_back(async(launch::async, DelegateClient, db, &wl,
-                                    total_ops / num_threads, false, his));
+                                    total_ops / num_threads, false, his,
+                                    perf_Context, iostats_Context));
     }
     assert((int)actual_ops.size() == num_threads);
 
@@ -148,6 +197,11 @@ int main(const int argc, const char *argv[]) {
     for (int i = 1; i < num_threads; i++) {
       histograms[0]->Merge(*histograms[i]);
     }
+    shared_ptr<rocksdb::PerfContext> perf_Context =
+        make_shared<rocksdb::PerfContext>();
+    for (int i = 0; i < num_threads; i++) {
+      mergePerf(perf_Context, perfs[i]);
+    }
     cerr << "# Transaction throughput " << endl;
     cerr << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
     cerr << total_ops / duration << " OPS" << endl;
@@ -157,6 +211,11 @@ int main(const int argc, const char *argv[]) {
           << "============================statistics==========================="
           << endl;
       db->printStats();
+
+      cerr << "============================ perf/io "
+              "statistics==========================="
+           << endl;
+      cerr << perf_Context->ToString() << endl;
     }
   }
 }
