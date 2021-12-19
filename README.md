@@ -17,7 +17,7 @@ Run Workload A with a [RocksDB](https://github.com/facebook/rocksdb)-based
 implementation of the database, for example:
 ```
 ./ycsbc -db basic load -P ../workloads/workloadtest.spec
-./ycsbc -db rocksdb load -threads 4 -dbPath ./test -P workloads/workloada.spec -dbConfig ./db_config/rocksdb_config.ini
+./ycsbc -db rocksdb load -threads 4 -dbPath ./testDir -P ../workloads/workloada.spec -dbConfig ../db_config/rocksdb_config.ini
 ```
 Also reference run.sh and run.sh for the command line. See help by
 invoking `./ycsbc` without any arguments.

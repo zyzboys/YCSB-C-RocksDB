@@ -1,3 +1,6 @@
 [submodule "db_impl/rocksdb"]
 	path = db_impl/rocksdb
 	url = https://github.com/Colins110/rocksdb.git
+[submodule "db_impl/leveldb"]
+	path = db_impl/leveldb
+	url = https://github.com/Colins110/leveldb.git

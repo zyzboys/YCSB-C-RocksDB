@@ -11,22 +11,21 @@
 
 #include "core/db.h"
 
+#include "lib/string_hashtable.h"
 #include <string>
 #include <vector>
-#include "lib/string_hashtable.h"
 
 namespace ycsbc {
 
 class HashtableDB : public DB {
- public:
+public:
   typedef vmp::StringHashtable<const char *> FieldHashtable;
   typedef vmp::StringHashtable<FieldHashtable *> KeyHashtable;
 
   int Read(const std::string &table, const std::string &key,
+           const std::vector<std::string> *fields, std::vector<KVPair> &result);
+  int Scan(const std::string &table, const std::string &key, int len,
            const std::vector<std::string> *fields,
-           std::vector<KVPair> &result);
-  int Scan(const std::string &table, const std::string &key,
-           int len, const std::vector<std::string> *fields,
            std::vector<std::vector<KVPair>> &result);
   int Update(const std::string &table, const std::string &key,
              std::vector<KVPair> &values);
@@ -34,8 +33,10 @@ class HashtableDB : public DB {
              std::vector<KVPair> &values);
   int Delete(const std::string &table, const std::string &key);
 
- protected:
-  HashtableDB(KeyHashtable *table) : key_table_(table) { }
+  HashtableDB() { name_ = "hashtable"; }
+
+protected:
+  HashtableDB(KeyHashtable *table) : key_table_(table) {}
 
   virtual FieldHashtable *NewFieldHashtable() = 0;
   virtual void DeleteFieldHashtable(FieldHashtable *table) = 0;
@@ -46,6 +47,6 @@ class HashtableDB : public DB {
   KeyHashtable *key_table_;
 };
 
-} // ycsbc
+} // namespace ycsbc
 
 #endif // YCSB_C_HASHTABLE_DB_H_

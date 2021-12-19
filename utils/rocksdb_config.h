@@ -9,6 +9,7 @@
 #include "rocksdb/db.h"
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <cstddef>
 #include <string>
 
 using std::string;
@@ -29,6 +30,7 @@ private:
   size_t blockCache_;
   size_t gcSize_;
   size_t memtable_;
+  size_t maxFileSize_;
   size_t smallThresh_;
   size_t midThresh_;
   bool preheat_;
@@ -43,6 +45,7 @@ private:
   double GCRatio_;
   uint64_t blockWriteSize_;
   bool disableWAL_;
+  int memtableNum_;
 
 public:
   ConfigRocksDB(){};
@@ -56,6 +59,7 @@ public:
     sizeRatio_ = pt_.get<int>("config.sizeRatio");
     gcSize_ = pt_.get<size_t>("config.gcSize");
     memtable_ = pt_.get<size_t>("config.memtable");
+    maxFileSize_ = pt_.get<size_t>("config.maxFileSize");
     noCompaction_ = pt_.get<bool>("config.noCompaction");
     numThreads_ = pt_.get<int>("config.numThreads");
     smallThresh_ = pt_.get<size_t>("config.smallThresh");
@@ -74,6 +78,7 @@ public:
     GCRatio_ = pt_.get<double>("config.gcRatio");
     blockWriteSize_ = pt_.get<uint64_t>("config.blockWriteSize");
     disableWAL_ = pt_.get<bool>("config.disableWAL");
+    memtableNum_ = pt_.get<int>("config.memtableNum");
   }
 
   int getBloomBits() { return bloomBits_; }
@@ -99,6 +104,8 @@ public:
   size_t getGcSize() { return gcSize_; }
 
   size_t getMemtable() { return memtable_; }
+
+  size_t getMaxFileSize() { return maxFileSize_; }
 
   bool getNoCompaction() { return noCompaction_; }
 
@@ -127,6 +134,8 @@ public:
   bool getSepBeforeFlush() { return sep_before_flush_; }
 
   bool getDisableWAL() { return disableWAL_; }
+
+  int getMemtableNum() { return memtableNum_; }
 };
 } // namespace ycsbc
 

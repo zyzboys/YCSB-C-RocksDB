@@ -21,6 +21,7 @@ target_sources(ycsbc
     "db/db_factory.cc"
     "db/hashtable_db.cc"
     "db/rocksdb_db.cc"
+    "db/leveldb_db.cc"
     "utils/histogram.cc"
 )
 
@@ -28,16 +29,19 @@ target_include_directories(ycsbc
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_SOURCE_DIR}/db_impl/rocksdb/include
+  ${PROJECT_SOURCE_DIR}/db_impl/leveldb/include
 )
 
 target_link_directories(ycsbc
   PRIVATE
   ${PROJECT_SOURCE_DIR}/db_impl/rocksdb/build
+  ${PROJECT_SOURCE_DIR}/db_impl/leveldb/build
 )
 
 
 target_link_libraries(ycsbc
   librocksdb.a
+  libleveldb.a
   pthread
   tbb
   zstd

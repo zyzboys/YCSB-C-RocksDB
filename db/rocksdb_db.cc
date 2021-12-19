@@ -17,6 +17,7 @@ using namespace std;
 
 namespace ycsbc {
 RocksDB::RocksDB(const char *dbPath, const string dbConfig) : noResult(0) {
+  name_ = "rocksdb";
   // get rocksdb config
   ConfigRocksDB config;
   if (dbConfig.empty()) {
@@ -34,15 +35,20 @@ RocksDB::RocksDB(const char *dbPath, const string dbConfig) : noResult(0) {
   // set optionssc
   rocksdb::Options options;
   rocksdb::BlockBasedTableOptions bbto;
-  options.db_paths = {
-      {"/mnt/sdb/testRocksdb/vol1", (uint64_t)1 * 1024 * 1024 * 1024},
-      {"/mnt/sdb/testRocksdb/vol2", (uint64_t)3 * 1024 * 1024 * 1024},
-      {"/mnt/sdb/testRocksdb/vol3", (uint64_t)300 * 1024 * 1024 * 1024}};
+  options.db_paths = {{"/home/colin/hub/YCSB-C-RocksDB/build/testDir/vol1",
+                       (uint64_t)1 * 1024 * 1024 * 1024},
+                      {"/home/colin/hub/YCSB-C-RocksDB/build/testDir/vol2",
+                       (uint64_t)3 * 1024 * 1024 * 1024},
+                      {"/home/colin/hub/YCSB-C-RocksDB/build/testDir/vol3",
+                       (uint64_t)300 * 1024 * 1024 * 1024}};
   options.statistics = rocksdb::CreateDBStatistics();
   statistics = options.statistics;
   options.create_if_missing = true;
   options.write_buffer_size = memtable;
-  options.target_file_size_base = 64 << 20; // 64MB
+  // options.target_file_size_base = 64 << 20;                  // 64MB
+  options.target_file_size_base = 2 << 20;                   //同leveldb
+  options.max_write_buffer_number = config.getMemtableNum(); // 2个imm
+  options.force_consistency_checks = false; // 一致性检查 零时关闭
   // options.compaction_pri = rocksdb::kMinOverlappingRatio;
   if (config.getTiered()) {
     options.compaction_style = rocksdb::kCompactionStyleUniversal;
@@ -59,9 +65,9 @@ RocksDB::RocksDB(const char *dbPath, const string dbConfig) : noResult(0) {
   cerr << "level size base: " << options.max_bytes_for_level_base << endl;
   if (!compression)
     options.compression = rocksdb::kNoCompression;
-  if (bloomBits > 0) {
-    bbto.filter_policy.reset(rocksdb::NewBloomFilterPolicy(bloomBits));
-  }
+  // if (bloomBits > 0) {
+  //   bbto.filter_policy.reset(rocksdb::NewBloomFilterPolicy(bloomBits));
+  // }
   bbto.block_cache = rocksdb::NewLRUCache(blockCache);
   options.table_factory.reset(rocksdb::NewBlockBasedTableFactory(bbto));
 

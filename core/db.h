@@ -9,27 +9,32 @@
 #ifndef YCSB_C_DB_H_
 #define YCSB_C_DB_H_
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace ycsbc {
 
 class DB {
- public:
+protected:
+  std::string name_;
+
+public:
   typedef std::pair<std::string, std::string> KVPair;
   static const int kOK = 0;
   static const int kErrorNoData = 1;
   static const int kErrorConflict = 2;
   ///
   /// Initializes any state for accessing this DB.
-  /// Called once per DB client (thread); there is a single DB instance globally.
+  /// Called once per DB client (thread); there is a single DB instance
+  /// globally.
   ///
-  virtual void Init() { }
+  virtual void Init() {}
   ///
   /// Clears any state for accessing this DB.
-  /// Called once per DB client (thread); there is a single DB instance globally.
+  /// Called once per DB client (thread); there is a single DB instance
+  /// globally.
   ///
-  virtual void Close() { }
+  virtual void Close() {}
   ///
   /// Reads a record from the database.
   /// Field/value pairs from the result are stored in a vector.
@@ -90,15 +95,17 @@ class DB {
   ///
   virtual int Delete(const std::string &table, const std::string &key) = 0;
 
-  virtual void printStats() {};
+  virtual void printStats(){};
 
-  virtual  void EnablePerf(){};
+  virtual void EnablePerf(){};
 
-  virtual  void DisablePerf(){};
-  
-  virtual ~DB() { }
+  virtual void DisablePerf(){};
+
+  std::string getName() { return name_; }
+
+  virtual ~DB() {}
 };
 
-} // ycsbc
+} // namespace ycsbc
 
 #endif // YCSB_C_DB_H_
